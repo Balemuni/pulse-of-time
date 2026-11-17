@@ -5,7 +5,9 @@ ONE-TIME SETUP
 1. Connect the DualSense with a USB cable (haptics only work over USB).
 2. Press Win+R, type "mmsys.cpl", press Enter.
    "Playback" tab -> "Speakers (DualSense Wireless Controller)"
-   -> "Configure" -> "Quadraphonic" -> click Next until Finish.
+   -> "Configure" -> "Quadraphonic" -> Next.
+3. Full-range speakers page: tick "Front left and right", then "Surround speakers"
+   (the motors need the low frequencies) -> Next -> Finish.
 
 PLAY
 1. Start Lichii and load Ocarina of Time (Switch 2, version 1.1.1).
