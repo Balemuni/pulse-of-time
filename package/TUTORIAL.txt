@@ -1,0 +1,36 @@
+PULSE OF TIME - Quick Tutorial
+==============================
+
+ONE-TIME SETUP
+1. Connect the DualSense with a USB cable (haptics only work over USB).
+2. Press Win+R, type "mmsys.cpl", press Enter.
+   "Playback" tab -> "Speakers (DualSense Wireless Controller)"
+   -> "Configure" -> "Quadraphonic" -> click Next until Finish.
+
+PLAY
+1. Start Lichii and load Ocarina of Time (Switch 2, version 1.1.1).
+2. Double-click PulseOfTime.exe.
+   Windows says "Windows protected your PC"? -> "More info" -> "Run anyway".
+3. After about 3 seconds the self-test appears: every line should say [ok].
+4. Done. Close the window to stop.
+
+STRENGTH WHILE PLAYING (touchpad)
+- Click                          : gentle / normal / strong
+- Click, hold, slide up/down     : fine steps
+- Swipe up (no click)            : Navi's compass points to the nearest treasure or enemy
+
+TUNE EVERY EFFECT
+Run Calibrate.bat. Every effect is played one after another:
+- D-pad up/down : stronger/weaker (saved at once)
+- Circle        : play again
+- Cross         : next effect
+- Square        : back
+- Options       : done
+Everything is saved in tuning.json next to the exe. Changes also apply while you play.
+
+DEMO
+Demo.bat plays every effect without the game. "Demo.bat 360" = only the 360-degree demo.
+
+PROBLEMS
+- A self-test line shows [!!]: the fix is written right next to it.
+- Effects feel wrong? pulse-events.log (next to the exe) shows what the game reported.
