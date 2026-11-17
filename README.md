@@ -48,7 +48,9 @@ You only need to do this once:
 1. Plug the DualSense in with a USB cable.
 2. Press `Win + R`, type `mmsys.cpl` and press Enter.
 3. On the **Playback** tab, select **Speakers (DualSense Wireless Controller)** and click **Configure**.
-4. Pick **Quadraphonic** and click through to the end. The haptic motors are channels 3 and 4 of that device, and Windows only sends them when it's set to four channels.
+4. Pick **Quadraphonic** and click **Next**. The haptic motors are channels 3 and 4 of that device, and Windows only sends them when it's set to four channels.
+5. On the **full-range speakers** page, tick **Front left and right** first. Then **Surround speakers** can be ticked too: tick it. The motors run on low frequencies, and some drivers filter those out of channels that aren't marked as full-range, which makes the haptics weaker.
+6. Click **Next** and **Finish**.
 
 ## Playing
 
