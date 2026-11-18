@@ -54,7 +54,7 @@ You only need to do this once:
 
 ## Playing
 
-1. Start Lichii and load your save.
+1. Start Lichii or Fritchii and load your save.
 2. Start `PulseOfTime.exe`. If Windows shows "Windows protected your PC", click **More info**, then **Run anyway**.
 3. After about three seconds a self-test is printed. Every line should say `[ok]`.
 4. Play. Closing the window puts the controller back to normal.
@@ -87,13 +87,13 @@ If a self-test line shows `[!!]`, what to do is printed right next to it:
 - `game build 1.1.1`: other versions aren't supported yet.
 - `Link found`: load a save.
 
-Button effects assume Lichii's default layout: Square is attack, Circle is A, Cross is B and Triangle is X.
+Button effects assume the emulator's default layout: Square is attack, Circle is A, Cross is B and Triangle is X.
 
 `pulse-events.log` next to the exe lists what the game reported (events, enemies, animations, errors). Attach it if you open an issue.
 
 ## How it works
 
-Pulse of Time only ever reads from the game's memory inside Lichii, it never writes to it. The memory it reads:
+Pulse of Time only ever reads from the game's memory inside the emulator, it never writes to it. The memory it reads:
 
 - Link's action state machine, his animation and the event manager.
 - GameData, the game's save fields.
