@@ -1,6 +1,6 @@
 # Pulse of Time
 
-Full DualSense support for *The Legend of Zelda: Ocarina of Time* (Switch 2 remake) running in the [Lichii](https://github.com/zortos293/lichii) emulator.
+Full DualSense support for *The Legend of Zelda: Ocarina of Time* (Switch 2 remake) running in the [Lichii](https://github.com/zortos293/lichii) emulator or its fork Fritchii.
 
 Pulse of Time runs next to the emulator. It reads what the game is doing and plays it on your DualSense: on the voice-coil motors in both grips, on L2 and R2, on the lightbar and on the player LEDs. Nothing in the game or the emulator gets patched.
 
@@ -37,7 +37,7 @@ Pulse of Time runs next to the emulator. It reads what the game is doing and pla
 
 - Windows 10 or 11
 - A DualSense **connected by USB cable**. The haptic motors only get a signal over USB. Over Bluetooth, the triggers and lights still work.
-- Lichii running *Ocarina of Time* for Switch 2, **version 1.1.1** (build `E0F3CCFA`). Other versions use different memory addresses and won't be detected.
+- Lichii (or its fork Fritchii) running *Ocarina of Time* for Switch 2, **version 1.1.1** (build `E0F3CCFA`). Other versions use different memory addresses and won't be detected.
 
 That's all. The release is a single exe, no .NET or anything else to install.
 

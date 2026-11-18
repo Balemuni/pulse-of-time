@@ -126,7 +126,7 @@ static class Daemon
                         Console.WriteLine($"DualSense connected ({(ds.Bluetooth ? "Bluetooth" : "USB")}).");
                         sentR = sentL = null; sentLights = null;
                     }
-                    var lichii = Process.GetProcessesByName("lichii").FirstOrDefault();
+                    var lichii = GuestMemory.FindEmulator();
                     if (hx != null && hx.Stopped) { Console.WriteLine("Haptics device lost, reconnecting."); hx.Dispose(); hx = null; hxPid = 0; }
                     if (haptics && lichii != null && (hx == null || hxPid != lichii.Id))
                     {
@@ -154,7 +154,7 @@ static class Daemon
                     nextRetry = now + 2000;
                     // say once what is still missing, so a first start never looks like nothing happens
                     if (ds == null && !saidPad) { Console.WriteLine("Waiting for the DualSense (connect it with a USB cable)..."); saidPad = true; }
-                    if (oot == null && !saidGame && now > 2500) { Console.WriteLine("Waiting for Lichii with Ocarina of Time 1.1.1 (load a save)..."); saidGame = true; }
+                    if (oot == null && !saidGame && now > 2500) { Console.WriteLine("Waiting for Lichii or Fritchii with Ocarina of Time 1.1.1 (load a save)..."); saidGame = true; }
                 }
 
                 var s = oot?.Read() ?? default;

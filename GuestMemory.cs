@@ -16,9 +16,13 @@ sealed class GuestMemory : IDisposable
 
     GuestMemory(IntPtr h, int pid) { Handle = h; Pid = pid; }
 
-    public static GuestMemory? Attach(string process = "lichii")
+    /// Lichii and its forks, by exe name (Fritchii renamed it from v6.1 on).
+    static readonly string[] Emulators = { "lichii", "fritchii" };
+    public static Process? FindEmulator() => Emulators.SelectMany(Process.GetProcessesByName).FirstOrDefault();
+
+    public static GuestMemory? Attach()
     {
-        var p = Process.GetProcessesByName(process).FirstOrDefault();
+        var p = FindEmulator();
         if (p == null) return null;
         var h = OpenProcess(0x0410 /*QUERY_INFORMATION|VM_READ*/, false, p.Id);
         if (h == IntPtr.Zero) return null;

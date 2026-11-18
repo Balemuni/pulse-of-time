@@ -14,7 +14,7 @@ if (args.Length == 0 || args[0] is "run" || args[0].StartsWith("--")) return Dae
 if (args[0] == "state")
 {
     using var gm = GuestMemory.Attach();
-    if (gm == null || gm.Arena == 0) { Console.Error.WriteLine("lichii/game not running or guest arena not found."); return 1; }
+    if (gm == null || gm.Arena == 0) { Console.Error.WriteLine("emulator (Lichii/Fritchii) or game not running, or guest arena not found."); return 1; }
     var oot = new Oot(gm);
     if (!oot.FindMain()) { Console.Error.WriteLine("OoT 1.1.1 (E0F3CCFA) main not found."); return 1; }
     Console.WriteLine($"main at 0x{oot.Main:X}");
@@ -435,7 +435,7 @@ if (args[0] == "gd")
 if (args.FirstOrDefault() is "scan" or "watch")
 {
     using var gm = GuestMemory.Attach();
-    if (gm == null || gm.Arena == 0) { Console.Error.WriteLine("lichii/game not running or guest arena not found."); return 1; }
+    if (gm == null || gm.Arena == 0) { Console.Error.WriteLine("emulator (Lichii/Fritchii) or game not running, or guest arena not found."); return 1; }
     if (args[0] == "scan") return Scanner.Run(gm, args[1..]);
     // watch <va hex> <u8|u16|u32|f32> [seconds]: print the value whenever it changes
     ulong va = Convert.ToUInt64(args[1], 16); string t = args.Length > 2 ? args[2] : "u32";
@@ -454,7 +454,7 @@ if (args.FirstOrDefault() is "scan" or "watch")
 if (args.FirstOrDefault() == "meminfo")
 {
     using var gm = GuestMemory.Attach();
-    if (gm == null) { Console.Error.WriteLine("lichii not running / no access."); return 1; }
+    if (gm == null) { Console.Error.WriteLine("emulator (Lichii/Fritchii) not running / no access."); return 1; }
     Console.WriteLine($"pid {gm.Pid}  arena 0x{gm.Arena:X}  backing 0x{gm.Backing:X} size {gm.BackingSize >> 20} MiB");
     // Large regions overview
     foreach (var r in gm.Regions().Where(r => r.State != 0x10000 && r.Size >= (256UL << 20)))
