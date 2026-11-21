@@ -11,7 +11,7 @@ sealed class Actions
     readonly Dictionary<string, long> _since = new();
     readonly Random _rng = new(3);
     long _burnUntil, _freezeUntil, _shockUntil, _squeezeUntil, _windUntil, _nayruUntil, _fadeAbyss, _rainUntil;
-    long _gripPulseUntil, _nextNibble, _nibbleUntil, _noteFlashUntil;
+    long _gripPulseUntil, _noteFlashUntil;
     int _gripSide = 1; float _climbTravel; int _noteBtn;
     (float, float, float) _noteColor;
     public bool Raining => _rainUntil > 0;
@@ -283,8 +283,6 @@ sealed class Actions
             else { _climbTravel = 0; _climbMoving = false; }
             _lastX = s.X; _lastY = s.Y; _lastZ = s.Z; _lastT = now;
 
-            // fishing: now and then a nibble tugs at R2
-            if (fishing && now > _nextNibble) { _nibbleUntil = now + 90; _nextNibble = now + _rng.Next(700, 3500); hx.Play(Fx.Grip, 0.6f, 1, 0.8f); }
         }
 
         // ---- triggers ----
@@ -308,12 +306,14 @@ sealed class Actions
         if (Flying) r = l = Effects.Machine(0, 9, 7, 3, 40, 1);              // the chain reels you in, hard
         if (Slippery) r = l = Effects.Feedback(0, 1);                         // nothing to hold on to
         if (Sinking) { int p = 3 + (int)(4 * Math.Min(1, (now % 4000) / 4000f)); r = l = Effects.Feedback(0, p); }
-        if (fishing) { r = now < _nibbleUntil ? Effects.Vibration(4, 7, 40) : Effects.Feedback(2, 4); }
+        if (fishing) r = Effects.Feedback(2, 4); // the line's tension; a real bite comes from Moments (no more random fake nibbles)
         if (burn) r = l = Effects.Vibration(0, 5, 90);
         if (frozen) r = l = Effects.Feedback(0, 8);
         if (shock) r = l = Effects.Vibration(0, 8, 120);
         if (squeeze) { int p = 3 + (int)(5 * (0.5 + 0.5 * Math.Sin(now / 1000.0 * 2 * Math.PI * 1.2))); r = Effects.Feedback(0, p); l = Effects.Feedback(0, 11 - p); }
-        if (music || talk || sleep || InEvent) free = true;
+        Busy = music || talk || sleep || InEvent;
+        HandsBusy = climb || cliff || crawl || push || lift || swim && !under || hook || Flying;
+        if (Busy) free = true;
         if (grabbed || terror) { r = l = Effects.Feedback(0, 8); free = false; } // held fast / frozen: the triggers lock
 
         // ---- light ----
@@ -353,6 +353,8 @@ sealed class Actions
     public float HitScale = 1;
     public bool DuckSound;           // talking: voices would buzz through the sound layer
     public bool InEvent;             // dialogue / cutscene
+    public bool Busy;                // ocarina, dialogue, cutscene, sleep: no sword, bow or sonar feel
+    public bool HandsBusy;           // climbing, hanging, crawling, pushing, carrying, swimming, hookshot: Square is no sword swing
     long _diveStart = -1, _lastStroke = long.MinValue, _lastGrip, _lastT;
     float _lastX, _lastY, _lastZ, _posVel, _lastFrame; bool _climbMoving;
     public float PosSpeed => _posVel; // real movement speed from position (m/s)

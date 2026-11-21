@@ -48,7 +48,7 @@ sealed class Moments
     long _swordGoneSince = -1, _bunnyStep; double _bunnyPh; float _runBase = 4f;
     float _lastX, _lastZ; bool _wasEvent; string _weapon = "";
     readonly HashSet<string> _loggedGuards = new();
-    long _now, _bunnyT, _nextPeck;
+    long _now, _bunnyT, _nextPeck, _timerMoved = -100000; float _timerVal = float.NaN;
 
     bool Rise(uint h, bool v) { bool had = _flag.TryGetValue(h, out var o); _flag[h] = v; return had && v && !o; }
     bool Fell(uint h, bool v) { bool had = _flag.TryGetValue(h, out var o); _flag[h] = v; return had && !v && o; }
@@ -265,12 +265,17 @@ sealed class Moments
         if (hx != null) hx.FxScale = Dream ? 0.85f : 1f;
 
         // ---- minigames: start shot, timer, score, records ----
-        bool on = gd.Bool(HTimerOn) ?? false, down = gd.Bool(HTimerDown) ?? false;
+        bool flag = gd.Bool(HTimerOn) ?? false, down = gd.Bool(HTimerDown) ?? false;
         float val = gd.Float(HTimer) ?? 0, lim = gd.Float(HLimit) ?? 0;
         if (lim > 1000) { val /= 1000; lim /= 1000; } // shortcut: assumes seconds; a limit over 1000 must be ms
+        // a clock only counts as running while its value moves: a flag left set after a minigame (or read at boot)
+        // must not tick or fire a starting shot
+        if (float.IsNaN(_timerVal)) _timerVal = val; // first read: whatever is there already is not a running clock
+        else if (val != _timerVal) { _timerVal = val; _timerMoved = now; }
+        bool on = flag && now - _timerMoved < 1500;
         float left = down ? val : lim > 0 ? lim - val : -1;
         if (on && !_timerOn) { hx?.Play(Fx.StartShot); q.Pulse(now, 0, 8, 50, 90); Glow((255, 255, 255), 250, 0.9f); _scoreGameUntil = now + 120000; }
-        if (!on && _timerOn && _timerLeft >= 0 && _timerLeft < 0.3f) { hx?.Play(Fx.TimeUp); _micUntil = now + 1500; Glow((255, 40, 0), 800, 0.8f); }
+        if (!on && _timerOn && _timerLeft >= 0 && _timerLeft < 0.6f) { hx?.Play(Fx.TimeUp); _micUntil = now + 1500; Glow((255, 40, 0), 800, 0.8f); }
         _timerOn = on; _timerLeft = on ? left : -1;
         _timerFrac = on && lim > 0 && left >= 0 ? Math.Clamp(left / lim, 0, 1) : -1;
 

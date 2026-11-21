@@ -96,7 +96,7 @@ static class Daemon
         long lastFrame = 0, selfTestAt = 0; float dtF = 0.016f; string lastAnim = "";
         bool wasPaused = false; int prevDir = -1, prevL2b = 0, prevR2b = 0, lastSel = -1, lastHour = -1; long navRepeat = 0;
         string prevShield = "", prevBoot = "", prevArmor = "", prevWeapon = "";
-        long nextSonar = 0, heatSince = -1, nextHeat = 0, nextDrop = 0, lastHoofBeat = -1, nextSearchPing = 0; double stepPh = 0;
+        long nextSonar = 0, heatSince = -1, nextHeat = 0, nextDrop = 0, lastHoofBeat = -1, nextSearchPing = 0, lastHealFx = 0, lastFillFx = 0; double stepPh = 0;
         long braceUntil = 0, nextTelegraph = 0, lensUntil = 0, lastMpDrop = 0, fuseUntil = 0, ledShowUntil = 0; double ironPh = 0; float ledShow = 0;
         long atkAt = -10000, ledChipUntil = 0, nextAudioTick = 0, nextSparkle = 0, touchStart = -1, ledLevelUntil = 0;
         float atkSide = 0, atkFront = 1; int comboN = 0, touchY0 = 0, touchSteps = 0; bool touchMoved = false;
@@ -290,7 +290,9 @@ static class Daemon
                     // ---- aiming / shooting ----
                     bool atAim = Math.Abs(s.FovDeg - Tuning.Get("aim.fov", AimFov)) < 0.6f; // aim.fov in tuning.json if a setup aims at another FOV
                     aimSince = atAim ? (aimSince < 0 ? now : aimSince) : -1;
-                    bool aiming = aimSince >= 0 && now - aimSince >= AimHoldMs;
+                    // the aiming view is shared by bow, slingshot, hookshot and boomerang; the bow feel (creak, nock, click point,
+                    // jam) only belongs to the first two, and never in dialogue, cutscenes or while playing the ocarina
+                    bool aiming = aimSince >= 0 && now - aimSince >= AimHoldMs && !act.Busy && !act.HasVerb("UseHookshot") && !act.HasVerb("HookshotShoot");
                     if (wasAiming && !aiming) aimEnd = now;
                     wasAiming = aiming;
                     if (hx != null) { hx.Aiming = aiming && ammo > 0; hx.Rubber = child; hx.LowBoost = iron ? 1.45f : 1f; }
@@ -314,7 +316,8 @@ static class Daemon
                     else aimAcc = 0;
 
                     // ---- sword: swings, spin attack charge ----
-                    bool canSwing = sword && !aiming && !paused;
+                    // Square is also an ocarina note and does nothing while climbing, swimming, carrying or hanging: no sword feel then
+                    bool canSwing = sword && !aiming && !paused && !act.Busy && !act.HandsBusy;
                     if (canSwing && pressed(BSquare))
                     {
                         squareDown = now;
@@ -454,7 +457,8 @@ static class Daemon
                     }
                     if (lastLife == 0 && s.Life > 0 && deadAt >= 0 && now - deadAt < 15000)
                     { hx?.Play(Fx.Revive); Flash(255, 150, 220, 1200); deadUntil = 0; deadAt = -1; }        // a fairy
-                    else if (lastLife > 0 && s.Life > lastLife) { hx?.Play(Fx.Heal); Flash(60, 255, 120, 350); }
+                    // hearts refill a quarter at a time (potions, fairies, recovery hearts): one heal feel per refill, not one per quarter
+                    else if (lastLife > 0 && s.Life > lastLife && now - lastHealFx > 600) { hx?.Play(Fx.Heal); Flash(60, 255, 120, 350); lastHealFx = now; }
                     lastLife = s.Life;
 
                     // ---- rupees / magic ----
@@ -476,7 +480,7 @@ static class Daemon
                         if (mpMax > 0) { ledShow = Math.Clamp(mp / (float)mpMax, 0.05f, 1); ledShowUntil = now + 1200; } // the magic left
                         lastMpDrop = now;
                     }
-                    else if (lastMp >= 0 && mp >= lastMp + 4) hx?.Play(Fx.MagicFill);
+                    else if (lastMp >= 0 && mp >= lastMp + 4 && now - lastFillFx > 600) { hx?.Play(Fx.MagicFill); lastFillFx = now; } // refills tick up step by step
                     lastMp = mp;
 
                     // ---- items used up (read from the pouch) ----
@@ -500,7 +504,8 @@ static class Daemon
                     }
                     else if (now - airMinVy > 1500) minVy = 0;
                     bool onHorse = verbs.Contains(rideVerb);
-                    bool fast = (onHorse && s.SpeedH > 2.5f) || (s.SpeedH > 7.5f && Math.Abs(s.Vy) < 3f && !ao.Water);
+                    // only on Epona: fast on foot (dash, hookshot flight) used to count too and put the reins on both triggers
+                    bool fast = onHorse && s.SpeedH > 2.5f;
                     rideSince = fast ? (rideSince < 0 ? now : rideSince) : -1;
                     bool riding = rideSince >= 0 && now - rideSince > 300;
                     if (riding && (s.SpeedH - prevSpeed) / dtF > 22f && now > gallopSpur) { hx?.Play(Fx.Spur); gallopSpur = now + 1500; }
@@ -513,7 +518,7 @@ static class Daemon
                     // sonar: an enemy close by but not in front of you pings from where it is, faster as it nears
                     // haptic captions (tuning "captions" = 1): every enemy nearby pings, in front too, from further away
                     bool captions = Tuning.Get("captions", 0) > 0.5f;
-                    if (!paused && !act.DuckSound && cb != null && cb.NearestDistance < (captions ? 14 : 9) && (captions || cb.NearestFront < 0.3f) && now >= nextSonar)
+                    if (!paused && !act.Busy && cb != null && cb.NearestDistance < (captions ? 14 : 9) && (captions || cb.NearestFront < 0.3f) && now >= nextSonar)
                     {
                         var (palm, pan, tl, tr) = Quad.Place(cb.NearestSide, cb.NearestFront, 0.5f);
                         hx?.Play(Fx.Ping, Math.Max(0.3f, palm), 1, pan);
@@ -539,8 +544,8 @@ static class Daemon
                     // and sharp bright hits (blades, metal, rock) tick the trigger on their side
                     if (hx != null)
                     {
-                        if (hx.LowImpact > 0.75f && !paused) { quad.Pulse(now, Math.Min(8, hx.LowImpact * 6), Math.Min(8, hx.LowImpact * 6), 30, 160); hx.Duck(250); }
-                        if (!paused && !act.DuckSound && now >= nextAudioTick && Math.Max(hx.ImpactL, hx.ImpactR) > 1.1f)
+                        if (hx.LowImpact > 0.75f && !paused && !act.Busy) { quad.Pulse(now, Math.Min(8, hx.LowImpact * 6), Math.Min(8, hx.LowImpact * 6), 30, 160); hx.Duck(250); }
+                        if (!paused && !act.Busy && now >= nextAudioTick && Math.Max(hx.ImpactL, hx.ImpactR) > 1.1f)
                         {
                             quad.Pulse(now, Math.Min(4, hx.ImpactL * 2), Math.Min(4, hx.ImpactR * 2), 150, 35);
                             nextAudioTick = now + 90;
@@ -586,13 +591,14 @@ static class Daemon
                         }
                         else hx.Loops[(int)Loop.Danger] = 0;
                         // a chain lock that just vanished next to you was opened with a key
+                        if (cb.Gone.Count == 1) // several things vanishing at once is a map change, not a key in a lock
                         foreach (var g in cb.Gone)
                             if (g.Kind == Combat.ObjKind.Lock) { hx.Play(Fx.Unlock); quad.Pulse(now, 4, 4, 60, 60, 350); }
                     }
                     // iron boots: every step a heavy stamp, left and right foot, the triggers feel the weight land
                     bool grounded = Math.Abs(s.Vy) < 0.5f && !ao.Water && !riding;
                     float walk = Math.Max(s.SpeedH, act.PosSpeed);
-                    if (iron && grounded && walk > 0.4f && !paused)
+                    if (iron && grounded && walk > 0.4f && !paused && !act.Carried) // standing on a moving platform is no step
                     {
                         double before = ironPh; ironPh += walk * 0.75 * dtF;
                         if (Math.Floor(ironPh) != Math.Floor(before))
@@ -718,12 +724,14 @@ static class Daemon
 
                         if (ao.R != null) r = ao.R;
                         if (ao.L != null) l = ao.L;
-                        if (ao.FreeTriggers) r = l = Off;
-                        if (mom.R != null) r = mom.R;
-                        if (mom.L != null) l = mom.L;
                         if (charge > 0) r = l = Effects.Vibration(0, 2 + (int)(6 * charge), 30 + (int)(60 * charge));
                         if (riding) r = l = Effects.Feedback(1, 4); // the reins; the hooves come through Quad in step
                         if (now < braceUntil && !riding) l = Effects.Feedback(0, 8); // an enemy winds up: the shield hand braces
+                        // dialogue, cutscenes, the ocarina, sleep: free triggers win over everything above (the reins on
+                        // Epona used to keep them stiff while playing the ocarina in the saddle)
+                        if (ao.FreeTriggers) r = l = Off;
+                        if (mom.R != null) r = mom.R;
+                        if (mom.L != null) l = mom.L;
                         if (low)
                         {   // the heartbeat goes through all four points: lub hard in both triggers, dub softer
                             int period = critical ? 650 : 1000;
@@ -731,8 +739,11 @@ static class Daemon
                             if (now >= nextBeat)
                             {
                                 hx?.Play(Fx.Heartbeat, critical ? 1.1f : 0.8f);
-                                quad.Pulse(now, critical ? 8 : 5, critical ? 8 : 5, 30, 75, 0, false, true);
-                                quad.Pulse(now, critical ? 5 : 3, critical ? 5 : 3, 30, 65, 170, false, true);
+                                if (!ao.FreeTriggers) // in a scene or on the ocarina the beat stays in the palms only
+                                {
+                                    quad.Pulse(now, critical ? 8 : 5, critical ? 8 : 5, 30, 75, 0, false, true);
+                                    quad.Pulse(now, critical ? 5 : 3, critical ? 5 : 3, 30, 65, 170, false, true);
+                                }
                                 nextBeat = now - ph + period;
                             }
                         }
