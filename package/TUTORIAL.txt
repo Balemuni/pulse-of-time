@@ -18,7 +18,8 @@ PLAY
 
 STRENGTH WHILE PLAYING (touchpad)
 - Click                          : gentle / normal / strong
-- Click, hold, slide up/down     : fine steps
+- Click, hold, slide up/down     : fine steps (start on the left third = L2 resistance,
+                                   right third = R2 resistance, middle = everything)
 - Swipe up (no click)            : Navi's compass points to the nearest treasure or enemy
 
 TUNE EVERY EFFECT
@@ -29,7 +30,8 @@ Run Calibrate.bat. Every effect is played one after another:
 - Square        : back
 - Options       : done
 Everything is saved in tuning.json next to the exe. Changes also apply while you play.
-Trigger too hard (e.g. the shield on L2)? In tuning.json set "triggers.L2" or "triggers.R2"
+Trigger too hard (e.g. the shield on L2)? Slide on the left or right third of the touchpad,
+or set "triggers.L2" / "triggers.R2" in tuning.json
 lower (1 = full, 0 = off).
 
 DEMO

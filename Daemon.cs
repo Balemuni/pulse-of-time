@@ -104,7 +104,7 @@ static class Daemon
         bool lastChild = false, wasAiming = false, dryClicked = false, flagsReady = false, killsReady = false, wasAimingNock = false;
         var flagState = new Dictionary<uint, bool>(); var killState = new Dictionary<uint, int>();
         var recentKills = new Dictionary<string, long>();
-        string shield = "", boot = "", armor = "", weapon = "", lastDbg = "", lastErr = ""; bool saidPad = false, saidGame = false;
+        string shield = "", boot = "", armor = "", weapon = "", lastDbg = "", lastErr = ""; bool saidPad = false, saidGame = false; string touchKey = "master";
         bool quit = false;
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; quit = true; };
         Console.WriteLine("Pulse of Time is running. Close this window or press Ctrl+C to stop (the controller goes back to normal).");
@@ -789,7 +789,7 @@ static class Daemon
                                 : mom.Bar >= 0 ? 6 : act.AirLeft >= 0 ? 7 : bossFrac >= 0 ? 8 : targetFrac >= 0 ? 9 : 10;
                         float bar = src switch
                         {
-                            1 => pull, 2 => charge, 3 => Math.Clamp(Tuning.Get("master") / 2f, 0, 1), 4 => ledShow,
+                            1 => pull, 2 => charge, 3 => Math.Clamp(Tuning.Get(touchKey) / (touchKey == "master" ? 2f : 1.5f), 0, 1), 4 => ledShow,
                             5 => Math.Min(1, act.GrabPresses / 8f), 6 => mom.Bar, 7 => act.AirLeft, 8 => bossFrac, 9 => targetFrac,
                             _ => s.LifeMax > 0 ? Math.Max(0, s.Life) / (float)s.LifeMax : 0,
                         };
@@ -860,18 +860,25 @@ static class Daemon
                 prevButtons = buttons;
 
                 // ---- strength on the touchpad: hold the click and slide up/down to step it; a click alone cycles
-                //      gentle 0.6 / normal 1.0 / extreme 1.5. The player LEDs show the level for a moment. ----
+                //      gentle 0.6 / normal 1.0 / extreme 1.5. Where the finger starts picks what changes: the left
+                //      third = L2's resistance, the right third = R2's, the middle = everything. The player LEDs show the level. ----
                 if (ds != null)
                 {
-                    if (ds.TouchClick && touchStart < 0) { touchStart = now; touchY0 = ds.TouchY; touchSteps = 0; touchMoved = false; }
+                    if (ds.TouchClick && touchStart < 0)
+                    {
+                        touchStart = now; touchY0 = ds.TouchY; touchSteps = 0; touchMoved = false;
+                        touchKey = ds.TouchX < 640 ? "triggers.L2" : ds.TouchX > 1280 ? "triggers.R2" : "master";
+                    }
                     if (ds.TouchClick && touchStart >= 0 && ds.TouchDown)
                     {
                         int steps = (touchY0 - ds.TouchY) / 120;
                         if (steps != touchSteps)
                         {
-                            float m = Math.Clamp(MathF.Round((Tuning.Get("master") + 0.1f * (steps - touchSteps)) * 10) / 10, 0.2f, 2f);
-                            Tuning.Set("master", m); touchSteps = steps; touchMoved = true;
-                            hx?.Play(Fx.ProfileTick, 1, Math.Clamp((int)(m * 2.5f), 1, 5)); ledLevelUntil = now + 1500;
+                            bool trig = touchKey != "master";
+                            float m = Math.Clamp(MathF.Round((Tuning.Get(touchKey) + 0.1f * (steps - touchSteps)) * 10) / 10, trig ? 0f : 0.2f, trig ? 1.5f : 2f);
+                            Tuning.Set(touchKey, m); touchSteps = steps; touchMoved = true;
+                            hx?.Play(Fx.ProfileTick, 1, Math.Clamp((int)(m * (trig ? 3.4f : 2.5f)), 1, 5)); ledLevelUntil = now + 1500;
+                            Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff} {touchKey} -> {m}");
                         }
                     }
                     if (!ds.TouchClick && touchStart >= 0)
@@ -879,7 +886,7 @@ static class Daemon
                         if (!touchMoved && now - touchStart < 600)
                         {
                             float m = Tuning.Get("master"), next = m < 0.8f ? 1.0f : m < 1.25f ? 1.5f : 0.6f;
-                            Tuning.Set("master", next);
+                            Tuning.Set("master", next); touchKey = "master";
                             hx?.Play(Fx.ProfileTick, 1, next < 0.8f ? 1 : next < 1.25f ? 3 : 5); ledLevelUntil = now + 1500;
                             Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff} strength profile -> {next}");
                         }

@@ -62,7 +62,7 @@ You only need to do this once:
 The touchpad works while you play:
 
 - **Click** to switch between gentle, normal and strong.
-- **Click, hold and slide up or down** for finer steps. The player LEDs show the level.
+- **Click, hold and slide up or down** for finer steps. Where you start picks what changes: the **left third** sets how hard **L2** resists, the **right third** sets **R2**, the middle sets everything. The player LEDs show the level.
 - **Swipe up without clicking** for Navi's compass: a pulse points towards the nearest treasure (green light) or enemy (yellow).
 
 ## Tuning
