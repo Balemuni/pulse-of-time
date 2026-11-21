@@ -145,6 +145,27 @@ static class Effects
     public static byte[] Off() => B(0x05);
 
     /// Constant resistance from zone `start` to the end. strength 1..8.
+    /// The same effect with its resistance scaled by k (feedback, slope, weapon, bow); vibrations stay as they are.
+    /// Used for the per-trigger strength in tuning.json ("triggers.L2", "triggers.R2"); 0 turns the resistance off.
+    public static byte[] Scale(byte[] e, float k)
+    {
+        if (MathF.Abs(k - 1) < 0.01f || e[0] is not (0x21 or 0x22 or 0x25)) return e;
+        if (k < 0.05f) return Off();
+        var s = (byte[])e.Clone();
+        static int F(int strength, float k) => Math.Clamp((int)MathF.Round(strength * k), 1, 8);
+        switch (s[0])
+        {
+            case 0x21: // 3 bits of force per zone that is set
+                uint zones = (uint)(s[1] | s[2] << 8), force = BitConverter.ToUInt32(s, 3), scaled = 0;
+                for (int i = 0; i < 10; i++)
+                    if ((zones >> i & 1) != 0) scaled |= (uint)(F((int)(force >> 3 * i & 7) + 1, k) - 1) << 3 * i;
+                BitConverter.GetBytes(scaled).CopyTo(s, 3); break;
+            case 0x25: s[3] = (byte)(F(s[3] + 1, k) - 1); break;
+            case 0x22: s[3] = (byte)((F((s[3] & 7) + 1, k) - 1) | (F((s[3] >> 3 & 7) + 1, k) - 1) << 3); break;
+        }
+        return s;
+    }
+
     public static byte[] Feedback(int start, int strength)
     {
         if (strength <= 0) return Off();

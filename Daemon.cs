@@ -173,6 +173,7 @@ static class Daemon
                     Check("GameData", gd.Count(GameData.Kind.Int) > 500 && gd.Count(GameData.Kind.Bool) > 5000, "GameData manager moved");
                     Check("camera", oot.CameraEye() != null && s.FovDeg > 0, "camera offsets moved");
                     Check("event manager", oot.EventName() != null, "EventMgr offset moved");
+                    Check("trigger strength scaling", Effects.Scale(Effects.Feedback(0, 8), 0.75f).SequenceEqual(Effects.Feedback(0, 6)) && Effects.Scale(Effects.Weapon(2, 4, 8), 0.5f).SequenceEqual(Effects.Weapon(2, 4, 4)), "Effects.Scale is broken");
                     Check("tuning.json", File.Exists(Path.Combine(AppContext.BaseDirectory, "tuning.json")), "will be written on first use");
                     Check("v2 fields (minigames, time travel, water)", gd.Has(GameData.Kind.Int, GameData.Hash("MiniGame_Score")) && gd.Has(GameData.Kind.Bool, GameData.Hash("MiniGame_IsTimerCounting"))
                           && gd.Has(GameData.Kind.Int, GameData.Hash("WaterTemple_Room00_WaterLevel")), "GameData names changed");
@@ -736,6 +737,8 @@ static class Daemon
                             }
                         }
                         if (now < celebrateUntil) r = l = Effects.Machine(1, 9, 6, 2, 30, 2);
+                        // each trigger's resistance can be turned down or up in tuning.json (the shield's weight on L2 tires some hands)
+                        r = Effects.Scale(r, Tuning.Get("triggers.R2")); l = Effects.Scale(l, Tuning.Get("triggers.L2"));
                         (r, l) = quad.Apply(now, r, l);
                         if (now < rTick) r = Effects.Vibration(3, 6, 60);
                         if (now < lKick) l = Effects.Vibration(0, 8, 35);

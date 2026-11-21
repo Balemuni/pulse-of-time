@@ -8,7 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>PulseOfTime</AssemblyName>
     <RootNamespace>PulseOfTime</RootNamespace>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Product>Pulse of Time</Product>
     <Description>PS5-style haptics, adaptive triggers and lights for Ocarina of Time (Switch 2) in the Lichii emulator</Description>
     <Copyright>Copyright (C) 2026 Pulse of Time contributors, GPL-3.0-or-later</Copyright>

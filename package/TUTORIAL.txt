@@ -29,6 +29,8 @@ Run Calibrate.bat. Every effect is played one after another:
 - Square        : back
 - Options       : done
 Everything is saved in tuning.json next to the exe. Changes also apply while you play.
+Trigger too hard (e.g. the shield on L2)? In tuning.json set "triggers.L2" or "triggers.R2"
+lower (1 = full, 0 = off).
 
 DEMO
 Demo.bat plays every effect without the game. "Demo.bat 360" = only the 360-degree demo.

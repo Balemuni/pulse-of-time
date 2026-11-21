@@ -37,7 +37,7 @@ static class Tuning
         ["loop.Quake"] = 1.2f, ["loop.Motor"] = 1.1f, ["loop.Warmth"] = 1.2f, ["loop.Danger"] = 1.2f, ["loop.Mist"] = 1.3f, ["loop.Sink"] = 1.2f,
         ["fx.Sparkle"] = 1.4f, ["fx.Finisher"] = 1.2f, ["fx.BladeRing"] = 1.3f, ["fx.SwingHeavy"] = 1.3f, ["fx.Arrive"] = 1.2f, ["fx.Unlock"] = 1.4f, ["fx.ProfileTick"] = 1.8f,
         ["loop.Slide"] = 1.1f, ["loop.Wind"] = 1.0f, ["loop.Hooves"] = 1.35f, ["loop.Note"] = 1.3f, ["loop.Crawl"] = 1.45f, ["loop.Fuse"] = 1.25f,
-        ["bow.creak"] = 1.25f, ["spin.charge"] = 1.0f, ["triggers.tremor"] = 1.15f, ["sound.layer"] = 1.0f, ["master"] = 1.0f,
+        ["bow.creak"] = 1.25f, ["spin.charge"] = 1.0f, ["triggers.tremor"] = 1.15f, ["triggers.L2"] = 0.75f, ["triggers.R2"] = 1.0f, ["sound.layer"] = 1.0f, ["master"] = 1.0f,
     };
 
     public static float Get(string key, float def = 1f)

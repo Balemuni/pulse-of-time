@@ -72,6 +72,7 @@ The touchpad works while you play:
   - Circle plays the effect again, Cross goes to the next one, Square goes back, Options stops.
 - `tuning.json` sits next to the exe and holds every value. Changes apply while you play.
   - `master` is the overall strength.
+  - `triggers.L2` and `triggers.R2` set how hard each trigger resists (1 = full, 0 = off). L2 starts at 0.75 so holding up the shield doesn't tire your finger.
   - Every effect (`fx.*`) and texture (`loop.*`) has its own factor.
   - `captions: 1` turns on haptic captions: every enemy nearby pings, including those in front of you.
   - `aim.fov` is the camera's field of view while aiming. Change it only if aiming isn't detected (default 40).

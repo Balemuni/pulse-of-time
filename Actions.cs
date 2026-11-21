@@ -164,7 +164,8 @@ sealed class Actions
 
         bool swim = Has("Swim"), under = HasAny(Dive), climb = HasAny("Climb", "ClimbLadder"), cliff = Has("CliffHold");
         bool push = Has("GrabPushPull"), lift = Has("Lift"), crawl = Has("Crawl"), slide = HasAny("Slide", "SlippingDown");
-        bool ride = Has("Ride"), music = Has("PlayMusic"), talk = HasAny("Talk", "Listen"), sleep = Has("Sleep"), fishing = Has("Fishing");
+        // the ocarina shows as the PlayMusic verb or only as the DemoOcarina animation (seen in play)
+        bool ride = Has("Ride"), music = Has("PlayMusic") || anims.Count > 0 && anims[0].name.Contains("Ocarina"), talk = HasAny("Talk", "Listen"), sleep = Has("Sleep"), fishing = Has("Fishing");
         bool hook = HasAny("HookshotShoot", "UseHookshot"), falling = Has("Fall") && s.Vy < -4f;
         bool burn = now < _burnUntil, frozen = now < _freezeUntil, shock = now < _shockUntil, squeeze = now < _squeezeUntil, wind = now < _windUntil;
 
@@ -233,14 +234,14 @@ sealed class Actions
             if (moved > 0 || dt > 0) _posVy = _posVy * 0.7f + (Math.Abs(dy) < 2 ? dy / dt : 0) * 0.3f;
 
             // hookshot / longshot flight: the chain pulls you fast toward the target, then you hit it
-            if (EnteredAny("HookshotShoot", "UseHookshot")) { _hookT = now; _hookDone = false; }
+            if (hook) _hookT = now; // stays armed while it is held: the pull can come after any amount of aiming
             bool flying = now - _hookT < 2500 && _posVel > 6f;
             L[(int)Loop.Wind] = Math.Max(L[(int)Loop.Wind], flying ? 0.9f : 0);
             if (flying && !_flying)
             {   // the hook bites: a snap under R2, then the pull runs from the fingertips back into the palms
-                hx.Play(Fx.Bite, 0.8f, 1, 0.4f); q.Pulse(now, 0, 8, 120, 60); q.Pulse(now, 5, 5, 40, 200, 80, true, true); _hookDone = true;
+                hx.Play(Fx.Bite, 0.8f, 1, 0.4f); hx.Play(Fx.ChainRattle, 1.3f); q.Pulse(now, 0, 8, 120, 60); q.Pulse(now, 5, 5, 40, 200, 80, true, true);
             }
-            if (!_hookDone && !flying && now - _hookT > 1100 && now - _hookT < 1700) { hx.Play(Fx.ChainRattle); _hookDone = true; } // it found nothing
+            if (_flying && flying && now >= _nextRatchet) { q.Pulse(now, 4, 5, 160, 50, 0, false, true); _nextRatchet = now + 110; } // chain links ratcheting through the hand
             if (flying) _flying = true;
             else if (_flying && _posVel < 3f) { _flying = false; hx.Play(Fx.Arrive, 1.1f); q.Pulse(now, 6, 6, 45, 110); hx.Duck(250); }
             Flying = _flying;
@@ -302,9 +303,9 @@ sealed class Actions
         if (crawl) r = l = Effects.Feedback(0, 3);
         if (slide) r = l = Effects.Vibration(0, 4, 40);
         if (falling) r = l = Effects.Vibration(0, Math.Clamp(1 + (int)((-s.Vy - 4) / 3), 1, 6), 50);
-        if (hook) r = now - _hookT < 450 ? Effects.Feedback(1, Math.Clamp(3 + (int)((now - _hookT) / 80), 3, 8)) // the chain runs out: tension builds
-                    : Effects.Machine(1, 9, 6, 2, 25, 1);
-        if (Flying) r = l = Effects.Machine(0, 9, 5, 2, 35, 1);              // the chain reels you in
+        // holding the hookshot: the chain just sits loaded under R2; the strong chain feel belongs to the pull itself
+        if (hook) r = Effects.Feedback(1, 3);
+        if (Flying) r = l = Effects.Machine(0, 9, 7, 3, 40, 1);              // the chain reels you in, hard
         if (Slippery) r = l = Effects.Feedback(0, 1);                         // nothing to hold on to
         if (Sinking) { int p = 3 + (int)(4 * Math.Min(1, (now % 4000) / 4000f)); r = l = Effects.Feedback(0, p); }
         if (fishing) { r = now < _nibbleUntil ? Effects.Vibration(4, 7, 40) : Effects.Feedback(2, 4); }
@@ -357,8 +358,8 @@ sealed class Actions
     public float PosSpeed => _posVel; // real movement speed from position (m/s)
     public float AirLeft = -1;        // breath left underwater without the Zora tunic (0..1), -1 = not diving
     public bool Flying, Slippery, Sinking;
-    float _posVy; long _hookT = -100000, _carryT = -1, _rodeFor; bool _flying, _hookDone = true;
-    int _wallSide = 1, _chain; long _lastChain;
+    float _posVy; long _hookT = -100000, _carryT = -1, _rodeFor; bool _flying;
+    int _wallSide = 1, _chain; long _lastChain, _nextRatchet;
     public long GrabbedUntil, TerrorUntil; public int GrabPresses; bool _wasGrabbed, _wasTerror;
     public bool Carried;              // standing on something that moves (platform, ship)
     public bool Has(int verb) => _now.Contains(Verbs.Name(verb));
